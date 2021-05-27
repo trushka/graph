@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>graph</title>
+	<style type="text/css">
+		body {margin:0}
+		.tooltip {
+		  position: absolute;
+		  text-align: left;
+		  width: auto;
+		  height: auto;
+		  padding: 3px 5px 3px 5px;
+		  font: 1em sans-serif;
+		  border: 0px;
+		  border-radius: 5px;
+		  pointer-events: none;
+		  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+		  background-color: lightsteelblue;
+		}
+
+		#container {
+		  height: 100vh;
+		  align: center;
+		  margin: 0 auto;
+		  overflow: hidden
+		}
+
+		#container>* {
+		  position: absolute;
+		}
+
+		.link {
+		  background: #9999;
+		  position: absolute;
+		  left: 0;
+		  top: 0;
+		  width: 100px;
+		  height: 1px;
+		  will-change: transform;
+		  transform-origin: 0 0;
+		}
+
+		.flag {
+		  width: 24px;
+		  height: 24px;
+		  left: -12px;
+		  top: -12px;
+		  position: absolute;
+		  will-change: transform;
+		}
+		.flag.applicant {
+		  background: #dd8a;
+		}
+		.flag.l-agent {
+		  background: #d8da;
+		}
+	</style>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.7.0/d3.min.js" defer></script>
+	<script type="text/javascript" src="graph.js" defer></script>
+</head>
+<body>
+	<div id="container">
+		<canvas id="charts"></canvas>
+		<div id="flags"></div>
+		<div id="tooltip" class="tooltip"></div>
+	</div>
+</body>
+</html>
