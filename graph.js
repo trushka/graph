@@ -93,16 +93,16 @@ d3.json(dataURL).then(data=> {
     flags.style("transform", d=> `
       translate(${d.x1=round(d.x1||d.x, d.x)}px, ${d.y1=round(d.y1||d.y, d.y)}px)`);
       
-    ctx.clearRect(0,0,width,height);
-      ctx.strokeStyle='#9999';
+    // ctx.clearRect(0,0,width,height);
+    //   ctx.strokeStyle='#9999';
     
-    links.forEach(d=>{
-      let {x1: x0, y1: y0}=d.source,
-          {x1, y1}=d.target;
-      ctx.moveTo(x0, y0);
-      ctx.lineTo(x1, y1);
-    })
-      ctx.stroke()
+    // links.forEach(d=>{
+    //   let {x1: x0, y1: y0}=d.source,
+    //       {x1, y1}=d.target;
+    //   ctx.moveTo(x0, y0);
+    //   ctx.lineTo(x1, y1);
+    // })
+    //   ctx.stroke()
     // lines.style("transform", d=> {
     //       dx=x1-x0, dy=y1-y0,
     //       scale=Math.sqrt(dx*dx+dy*dy)/100,
