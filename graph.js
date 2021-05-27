@@ -1,35 +1,36 @@
-var dataURL = "https://trushko.000webhostapp.com/graph_json/data.json";
-
-var forceCharge = -50, 
-    container=document.querySelector('#container'),
-  linkDistance = 30,
-  width = container.offsetWidth,
-  height = container.offsetHeight;
-console.log(container, width, height);
 
 var tooltip = d3.select("#tooltip").style("opacity", 0);
 
-d3.json(dataURL).then(data=> {
-  console.log(data)
-  let nodes=[], links=[], links0=[];
+d3.json("https://trushko.000webhostapp.com/graph_json/data.json").then(data=> {
+  //console.log(data)
+  const duration=80000, delay=2000,
+
+     nodes=[], links=[], links0=[],
+      container=document.querySelector('#container');
+
+  let t0=Date.now(), t1=0,
+    width = container.offsetWidth,
+    height = container.offsetHeight;
   
   data.forEach(item=>{
     let link = {
-      source: nodes.findIndex(el=>item.applicant==el.name),
-      target: nodes.findIndex(el=>item['Listing Agent']==el.name)
+      source: nodes.find(el=>item.applicant==el.name),
+      target: nodes.find(el=>item['Listing Agent']==el.name),
+      date: new Date(item['Listing Date'])
     }
-    if (link.source<0) {
-      link.source=nodes.length;
-      nodes.push({
+    t0=Math.min(t0, +link.date);
+    t1=Math.max(t1, +link.date);
+
+    if (!link.source) {
+      nodes.push(link.source={
         name: item.applicant,
         type: 'applicant',
         x: width/2,
         y: height/2
       })
     }    
-    if (link.target<0) {
-      link.target=nodes.length;
-      nodes.push({
+    if (!link.target) {
+      nodes.push(link.target={
         name: item['Listing Agent'],
         type: 'l-agent', 
         //x: width*(0.3+Math.random()*.4),
@@ -41,25 +42,32 @@ d3.json(dataURL).then(data=> {
   }); 
   //console.log(nodes);
   //console.log( links);
-  var canvas = d3.select("#charts")
-    .attr("width", width)
-    .attr("height", height);
-//console.log(canvas)
-  var force = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).distance(40))//.strength(.1))
+  const dt=(t1-t0)/duration;
+  console.log(t0,t1)
+  d3.timer(t=>{
+    t=t0+dt*t;
+    links.some(d=>{
+      if (d.strength || +d.date>t) return false;
+      //console.log(t);
+      force.force('link').links(links);
+      return d.strength=.2;
+    })
+  }, delay)
+
+ var force = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).distance(40).strength(d=>d.strength||0))//.strength(.1))
     .force('charge',d3.forceManyBody().strength(-75))
     .force('center',d3.forceCenter(width/2, height/2).strength(0))
-    .force('x',d3.forceX(width/2).strength(.2))
-    .force('y',d3.forceY(height/2).strength(.2))
+    .force('x',d3.forceX(width/2).strength(.1))
+    .force('y',d3.forceY(height/2).strength(.15))
     //.force('x1',d3.forceX(width).strength(.0421))
     //.force('y1',d3.forceY(height).strength(.0421))
   .alphaDecay(0);  
 
-  var ctx=canvas.node().getContext('2d'); 
-    // lines = d3.select("#charts").selectAll(".link")
-    // .data(links)
-    // .enter().append("div")
-    // .attr("class", "link");
+  var lines = d3.select("#charts").selectAll(".link")
+    .data(links)
+    .enter().append("div")
+    .attr("class", "link");
 
   var flags = d3.select('#flags').selectAll("img")
     .data(nodes)
@@ -97,20 +105,20 @@ d3.json(dataURL).then(data=> {
     //   ctx.strokeStyle='#9999';
     
     // links.forEach(d=>{
-    //   let {x1: x0, y1: y0}=d.source,
-    //       {x1, y1}=d.target;
     //   ctx.moveTo(x0, y0);
     //   ctx.lineTo(x1, y1);
     // })
     //   ctx.stroke()
-    // lines.style("transform", d=> {
-    //       dx=x1-x0, dy=y1-y0,
-    //       scale=Math.sqrt(dx*dx+dy*dy)/100,
-    //       angle=Math.atan(dy/dx)-(dx>0&&Math.PI);
-     // debugger;
-    //   return `translate(${x1}px, ${y1}px)
-    //   rotate(${angle}rad) scaleX(${scale})`
-    // });
+    lines.style("transform", d=> {
+      let {x1: x0, y1: y0}=d.source,
+          {x1, y1}=d.target;
+          dx=x1-x0, dy=y1-y0,
+          scale=Math.sqrt(dx*dx+dy*dy)/100,
+          angle=Math.atan(dy/dx)-(dx>0&&Math.PI);
+      //debugger;
+      return `translate(${x1}px, ${y1}px)
+      rotateZ(${angle}rad) scaleX(${scale})`
+    }).style('opacity', d=>+!!d.strength);
 
   });
 });
