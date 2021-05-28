@@ -3,7 +3,7 @@ var tooltip = d3.select("#tooltip").style("opacity", 0);
 
 d3.json("https://trushko.000webhostapp.com/graph_json/data.json").then(data=> {
   //console.log(data)
-  const duration=80000, delay=2000,
+  const duration=170000, delay=2000,
 
      nodes=[], links=[], links0=[],
       container=document.querySelector('#container');
@@ -25,16 +25,16 @@ d3.json("https://trushko.000webhostapp.com/graph_json/data.json").then(data=> {
       nodes.push(link.source={
         name: item.applicant,
         type: 'applicant',
-        x: width/2,
-        y: height/2
+        x: width*(0.4+Math.random()*.2),
+        y: height*(0.4+Math.random()*.2)
       })
     }    
     if (!link.target) {
       nodes.push(link.target={
         name: item['Listing Agent'],
         type: 'l-agent', 
-        //x: width*(0.3+Math.random()*.4),
-        //y: height*(0.3+Math.random()*.4)
+        x: width*(0.4+Math.random()*.2),
+        y: height*(0.4+Math.random()*.2)
       })
     }
     //console.log(link);
@@ -49,17 +49,19 @@ d3.json("https://trushko.000webhostapp.com/graph_json/data.json").then(data=> {
     links.some(d=>{
       if (d.strength || +d.date>t) return false;
       //console.log(t);
-      force.force('link').links(links);
-      return d.strength=.2;
+      
+      return (d.strength=.15) && force.force('link').links(links).strength(d=>d.strength||.01);
     })
   }, delay)
 
  var force = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).distance(40).strength(d=>d.strength||0))//.strength(.1))
-    .force('charge',d3.forceManyBody().strength(-75))
-    .force('center',d3.forceCenter(width/2, height/2).strength(0))
-    .force('x',d3.forceX(width/2).strength(.1))
-    .force('y',d3.forceY(height/2).strength(.15))
+    .force('link', d3.forceLink(links).distance(45))//.strength(.1))
+    .force('charge',d3.forceManyBody().strength(3))
+    .force('collide',d3.forceCollide(60).strength(.15))
+    .force('collide1',d3.forceCollide(40).strength(.23))
+    .force('center',d3.forceCenter(width/2, height/2).strength(.5))
+    // .force('x',d3.forceX(width/2).strength(0))//.1))
+    // .force('y',d3.forceY(height/2).strength(0))//.15))
     //.force('x1',d3.forceX(width).strength(.0421))
     //.force('y1',d3.forceY(height).strength(.0421))
   .alphaDecay(0);  
@@ -98,8 +100,15 @@ d3.json("https://trushko.000webhostapp.com/graph_json/data.json").then(data=> {
   }
 
   force.on("tick", function() {
-    flags.style("transform", d=> `
-      translate(${d.x1=round(d.x1||d.x, d.x)}px, ${d.y1=round(d.y1||d.y, d.y)}px)`);
+    let offset=flags.nodes()[0].offsetWidth*3,
+     bottom=height-offset, right=width-offset;
+    flags.style("transform", function(d) {
+      d.vx+=Math.max(0, offset-d.x)*.2;
+      d.vy+=Math.max(0, offset-d.y)*.2;
+      d.vx+=Math.min(0, right-d.x)*.2;
+      d.vy+=Math.min(0, bottom-d.y)*.2;
+      return `translate(${d.x1=round(d.x1||d.x, d.x)}px, ${d.y1=round(d.y1||d.y, d.y)}px)`
+    });
       
     // ctx.clearRect(0,0,width,height);
     //   ctx.strokeStyle='#9999';
